@@ -54,6 +54,7 @@ export default defineConfig({
 				{ label: 'Part 6', slug: '06-why-history-matters' },
 				{ label: 'Part 7', slug: '07-facts-as-a-foundation-for-ai' },
 				{ label: 'Part 8', slug: '08-the-log-sourced-architecture-initiative' },
+				{ label: 'FAQ', slug: '09-faq' },
 			],
 		}),
 	],

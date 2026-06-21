@@ -1,0 +1,187 @@
+---
+title: "Frequently Asked Questions"
+description: "Clarifications, comparisons, and practical guidance for the LSA initiative — answers to the questions the manifesto leaves open."
+---
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+The eight-part series establishes **why** facts should be the foundation of software systems.
+This FAQ addresses the **what**, **how**, and **how-is-it-different** questions that naturally
+follow — so teams can move from principle to practice.
+
+---
+
+## 1. Foundational Concepts
+
+### 1.1 What exactly is a "fact" in LSA?
+
+A **fact** is an immutable, timestamped statement that something happened.
+It has four essential properties:
+
+- **Atomic** — represents one observation, not a batch.
+- **Immutable** — once written, it is never updated or deleted.
+- **Self-describing** — carries its own schema version and semantic identity.
+- **Temporally anchored** — records *when* it occurred and *when* it was observed.
+
+**Example**
+
+```json
+{
+  "type": "OrderPlaced",
+  "orderId": 9182,
+  "customerId": 314,
+  "amount": 49.90,
+  "occurredAt": "2026-06-22T08:14:02Z"
+}
+````
+
+A **state** like `Order.status = "Shipped"` is *not* a fact — it is a *projection*
+derived from one or more facts (`OrderPlaced`, `OrderPacked`, `OrderShipped`).
+
+***
+
+### 1.2 Why is it called *Log-Sourced* and not *Event-Sourced*?
+
+Both rely on append-only sequences, but the **intent differs**:
+
+| Dimension        | Event Sourcing                  | Log-Sourced Architecture                      |
+| ---------------- | ------------------------------- | --------------------------------------------- |
+| Scope            | Per-aggregate (bounded context) | Organization-wide source of truth             |
+| Primary consumer | The owning service              | Any consumer — services, analytics, AI, audit |
+| Replay purpose   | Rebuild aggregate state         | Reconstruct *any* view, including new ones    |
+| Schema ownership | Domain service                  | Shared fact catalog                           |
+| Coupling to DDD  | Tight                           | Optional                                      |
+
+LSA treats the **log itself** — not a service's aggregate — as the architectural center of gravity.
+
+> 💡 Think of Event Sourcing as a *pattern within a service*, and Log-Sourced Architecture
+> as a *pattern for an organization*.
+
+***
+
+### 1.3 Is LSA the same as Kappa Architecture or Data Mesh?
+
+No, though it shares DNA with both.
+
+* **Kappa** is a *data-processing topology* (one stream, no batch layer). LSA is broader —
+  it covers governance, AI grounding, explainability, and portability.
+* **Data Mesh** distributes ownership of *data products*. LSA can run **inside** a Data Mesh:
+  each domain publishes its facts as a product, and the log is the contract.
+* **Lakehouse** unifies analytics storage. LSA is upstream of the lakehouse — the lakehouse
+  becomes one of many *consumers* of the facts.
+
+***
+
+## 2. Architecture & Implementation
+
+### 2.1 Won't an immutable log grow forever? Isn't that expensive?
+
+Storage cost is rarely the bottleneck — object storage is \~$0.02/GB/month.
+What matters is **structure**:
+
+* **Tiered storage** — hot facts in the broker, cold facts in object storage (Kafka Tiered Storage, Pulsar Offloaders).
+* **Compaction** — retain the *latest fact per key* where full history isn't required.
+* **Snapshots** — periodic projections allow consumers to skip log scans.
+* **Archival** — older facts move to cheaper, queryable formats (Parquet on S3).
+
+The cost of *losing* history is typically far greater than the cost of *keeping* it.
+
+***
+
+### 2.2 How does LSA handle schema evolution?
+
+Schemas evolve; facts don't.
+
+* Use **forward- and backward-compatible** formats (Avro, Protobuf).
+* Every fact carries its **schema version**.
+* Projections are **versioned**, not migrated — a v2 projection runs alongside v1 until consumers cut over.
+* Breaking changes are introduced as **new fact types**, not mutations of old ones.
+
+***
+
+### 2.3 What about GDPR, "right to be forgotten," and PII?
+
+This is the hardest practical question for any immutable system. Common patterns:
+
+* **Crypto-shredding** — PII is encrypted with a per-subject key; deleting the key renders the
+  data unreadable while preserving the structural fact.
+* **Tombstone facts** — a `SubjectErased` fact instructs all projections to drop derived data.
+* **PII segregation** — sensitive attributes live in a separate, deletable store; the log
+  references them by ID.
+
+> ⚠️ LSA does not exempt you from privacy law. It changes *how* you comply: by adding facts,
+> not by mutating them.
+
+***
+
+## 3. Adoption & Migration
+
+### 3.1 Do we have to rewrite everything?
+
+No. LSA is adopted **incrementally**:
+
+1. **Identify a high-value domain** — typically one suffering from sync pain or audit gaps.
+2. **Introduce a fact log alongside** the existing database (dual-write or CDC).
+3. **Build one projection** — usually a read model that consumers prefer.
+4. **Retire the legacy read path** once the projection earns trust.
+5. **Repeat** per domain.
+
+The legacy database does not disappear overnight. It is gradually **demoted from source of
+truth to one more projection**.
+
+***
+
+### 3.2 When is LSA *not* the right choice?
+
+* Small, single-service applications where state-centric design is sufficient.
+* Highly regulated workloads where **hard deletion**, not logical erasure, is mandated and
+  crypto-shredding is not accepted by counsel.
+* Teams without the operational maturity to run a log substrate as a Tier-1 service.
+
+LSA is an investment. It pays off when **history, explainability, or AI grounding** are
+strategic — not when they are nice-to-have.
+
+***
+
+### 3.3 What does success look like?
+
+* Engineers stop writing synchronization pipelines.
+* "Why is this number wrong?" becomes a query, not an investigation.
+* New consumers — analytics, AI, partners — are added without touching producers.
+* Audit and compliance reports become byproducts of the log, not bespoke projects.
+
+***
+
+## 4. Glossary
+
+| Term                 | Definition                                                           |
+| -------------------- | -------------------------------------------------------------------- |
+| **Fact**             | An immutable, timestamped statement that something happened.         |
+| **Log**              | An ordered, append-only sequence of facts; the system of record.     |
+| **Projection**       | A derived view of the log optimized for a specific consumer.         |
+| **State**            | The current value of a projection — always derivable, never primary. |
+| **Reasoning**        | The explicit rules or models that transform facts into decisions.    |
+| **Replay**           | Reprocessing the log to rebuild a projection or audit a decision.    |
+| **Compaction**       | Retaining only the latest fact per key to bound storage.             |
+| **Materialization**  | The act of computing and storing a projection.                       |
+| **Crypto-shredding** | Erasing data by destroying its decryption key.                       |
+
+***
+
+## 5. Further Reading
+
+<div style="font-size: 1.15rem; line-height: 2.2; margin-bottom: 2rem;">
+✅ [State Is Transient. Facts Endure.](./01-state-is-transient-facts-endure)<br/>
+✅ [The Cost of Fragmented Truth.](./02-cost-of-fragmented-truth)<br/>
+✅ [Explainability Starts with Facts and Reasoning.](./03-explainability-starts-with-facts-and-reasoning)<br/>
+✅ [Access Should Not Depend on Synchronization.](./04-access-should-not-depend-on-synchronization)<br/>
+✅ [Facts Should Outlive Technology.](./05-facts-should-outlive-technology)<br/>
+✅ [Why History Matters.](./06-why-history-matters)<br/>
+✅ [Facts as a Foundation for AI.](./07-facts-as-a-foundation-for-ai)<br/>
+✅ [The Log-Sourced Architecture Initiative.](./08-the-log-sourced-architecture-initiative)<br/>
+</div>
+
+***
+
+> 💡 Have a question that isn't answered here? Open an issue in the LSA repository or
+> raise it in the architecture guild — the FAQ evolves with the practice.
+ 
