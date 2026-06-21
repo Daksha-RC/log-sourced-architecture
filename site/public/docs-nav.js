@@ -1,4 +1,4 @@
-(function() {
+(function () {
   var VERSION_KEY = 'deql-doc-version';
 
   function getVersionPrefix() {
@@ -17,7 +17,7 @@
 
     var allLinks = document.querySelectorAll('aside a[href], [class*="sidebar"] a[href], nav a[href]');
 
-    allLinks.forEach(function(link) {
+    allLinks.forEach(function (link) {
       var href = link.getAttribute('href');
       if (href && href.startsWith('/') && !href.startsWith('/' + versionPrefix) && href !== '/') {
         link.setAttribute('href', '/' + versionPrefix + href);
@@ -36,7 +36,7 @@
     versionSelect.appendChild(latestOpt);
 
     // Add version options from versions.json
-    versions.forEach(function(v) {
+    versions.forEach(function (v) {
       var opt = document.createElement('option');
       opt.value = v.value;
       opt.textContent = v.label;
@@ -45,7 +45,7 @@
 
     versionSelect.value = currentVersion;
 
-    versionSelect.addEventListener('change', function() {
+    versionSelect.addEventListener('change', function () {
       var v = versionSelect.value;
       var path = window.location.pathname;
       var stripped = path.replace(/^\/v[\d-]+\//, '/');
@@ -69,11 +69,11 @@
 
     // Docs link
     var docsLink = document.createElement('a');
-    docsLink.href = '/overview/';
+    docsLink.href = './overview/';
     docsLink.textContent = 'Docs';
     docsLink.style.cssText = 'color: var(--sl-color-white); text-decoration: none; font-size: 0.875rem; font-weight: 500; padding: 0.25rem 0.75rem; opacity: 0.85;';
-    docsLink.addEventListener('mouseenter', function() { docsLink.style.opacity = '1'; });
-    docsLink.addEventListener('mouseleave', function() { docsLink.style.opacity = '0.85'; });
+    docsLink.addEventListener('mouseenter', function () { docsLink.style.opacity = '1'; });
+    docsLink.addEventListener('mouseleave', function () { docsLink.style.opacity = '0.85'; });
     container.insertBefore(docsLink, socialIcons);
 
     // Version selector — fetch versions.json
@@ -81,12 +81,12 @@
     var currentVersion = versionPrefix || 'latest';
 
     fetch('/versions.json')
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
         var versionSelect = buildDropdown(data.versions || [], currentVersion);
         container.insertBefore(versionSelect, socialIcons);
       })
-      .catch(function() {
+      .catch(function () {
         // Fallback: show just "latest" if versions.json is missing
         var versionSelect = buildDropdown([], currentVersion);
         container.insertBefore(versionSelect, socialIcons);
@@ -97,14 +97,14 @@
       rewriteSidebarLinks(versionPrefix);
 
       // Clear session when "Switch to latest" banner link is clicked
-      document.addEventListener('click', function(e) {
+      document.addEventListener('click', function (e) {
         var link = e.target.closest('a');
         if (link && link.closest('.sl-banner') && link.getAttribute('href') === '/') {
           sessionStorage.removeItem(VERSION_KEY);
         }
       });
 
-      var observer = new MutationObserver(function() {
+      var observer = new MutationObserver(function () {
         rewriteSidebarLinks(versionPrefix);
       });
       var sidebar = document.querySelector('aside') || document.querySelector('[class*="sidebar"]');
