@@ -1,0 +1,51 @@
+---
+title: The Log sourced architecture Manifesto
+description: We believe the immutable log is a fundamental architectural primitive and that future systems should be built upon it.
+template: splash
+hero:
+  tagline: What if modern software was built around facts instead of state?
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+### State is transient. Facts endure. Modern software should be built on facts.
+Today's systems scatter truth across databases, services, warehouses, caches, search engines, event buses, and AI platforms.
+As systems grow, synchronization becomes the architecture.
+We believe that a coherent approach to systems architecture is needed to establish facts as the foundation of software.
+### Log-Sourced Systems are Unified
+Domains, services, and teams should evolve independently without fragmenting facts.
+State, reasoning, projections, analytics, and AI context are derived from facts.
+### Log-Sourced Systems are Inspectable
+Every state and projection can be traced to the facts and reasoning that produced it.
+Nothing is a black box.
+### Log-Sourced Systems are Accessible
+Facts should be available where they are needed.
+State, projections, and history should be accessible at the speed and scale demanded by their consumers.
+### Log-Sourced Systems are Portable
+Facts outlive databases, cloud providers, storage engines, analytics platforms, and AI models.
+Facts are permanent. Implementations are temporary.
+### Log-Sourced Systems are Immutable
+New knowledge is added to history rather than replacing it.
+The past is never lost. It can be replayed.
+
+---
+
+<div style={{ textAlign: 'center' }}>
+  ### Logs preserve facts.
+The immutable log is a fundamental architectural primitive and that future systems should be built upon it.
+</div>
+
+---
+
+#### Deep dive into reasoning why we need another look at how modern systems are evolving 
+<div style="font-size: 1.15rem; line-height: 2.2; margin-bottom: 2rem;">
+✅ [State Is Transient. Facts Endure.](/01-state-is-transient-facts-endure)<br/>
+✅ [The Cost of Fragmented Truth.](/02-cost-of-fragmented-truth)<br/>
+✅ [Explainability Starts with Facts and Reasoning.](/03-explainability-starts-with-facts-and-reasoning)<br/>
+✅ [Access Should Not Depend on Synchronization.](/04-access-should-not-depend-on-synchronization)<br/>
+✅ [Facts Should Outlive Technology.](/05-facts-should-outlive-technology)<br/>
+✅ [Why History Matters.](/06-why-history-matters)<br/>
+✅ [Facts as a Foundation for AI.](/07-facts-as-a-foundation-for-ai)<br/>
+✅ [The Log-Sourced Architecture Initiative.](/08-the-log-sourced-architecture-initiative)<br/>
+</div>
+

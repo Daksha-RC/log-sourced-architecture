@@ -1,3 +1,10 @@
+---
+title: Building Software on Immutable Facts
+description: Building Software on Immutable Facts is an 8-part article series exploring a fact-centric approach to software architecture.
+---
+
+---
+
 ### About This Series
 
 *Building Software on Immutable Facts* is an 8-part article series exploring a fact-centric approach to software architecture.
